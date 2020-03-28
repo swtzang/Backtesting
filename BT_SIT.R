@@ -40,7 +40,8 @@ library('quantmod')
 
 # load historical prices from Yahoo Finance
 data = getSymbols('SPY', src = 'yahoo', from = '1980-01-01', auto.assign = F)
-
+str(data)
+tail(data)
 # Buy & Hold
 signal = rep(1, nrow(data))
 buy.hold = bt.simple(data, signal)
@@ -49,9 +50,10 @@ ls(buy.hold)
 sma = SMA(Cl(data),200)
 signal = ifelse(Cl(data) > sma, 1, 0)
 sma.cross = bt.simple(data, signal)
-
+names(sma.cross)
+head(sma.cross$equity)
 # Create a chart showing the strategies perfromance in 2000:2009
-dates = '2000::2009'
+dates = '2000::2020'
 buy.hold.equity = buy.hold$equity[dates] / as.double(buy.hold$equity[dates][1])
 sma.cross.equity = sma.cross$equity[dates] / as.double(sma.cross$equity[dates][1])
 
@@ -94,6 +96,8 @@ prices = data$prices
 # Buy & Hold    
 data$weight[] = 1
 models$buy.hold = bt.run(data) 
+# you may turn off the timezone error message for just now
+# options('xts_check_TZ'=FALSE)
 
 # MA Cross
 sma = bt.apply(data, function(x) { SMA(Cl(x), 200) } )  
