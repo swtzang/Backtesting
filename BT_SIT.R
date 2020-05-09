@@ -10,7 +10,8 @@
 #It is very easy to write a simple Backtesting routine in R, for example:
 #=================
 rm(list=ls())
-
+library(pacman)
+p_load(quantmod)
 # na.locf: last observation carried forward
 # Generic function for replacing each NA with the most recent non-NA prior to it.
 # na.rm:	logical. Should leading NAs be removed?
@@ -36,11 +37,11 @@ bt.simple <- function(data, signal)
 }
 
 # Test for bt.simple functions
-library('quantmod')
 
 # load historical prices from Yahoo Finance
-data = getSymbols('SPY', src = 'yahoo', from = '1980-01-01', auto.assign = F)
+data = getSymbols('SPY', src = 'yahoo', from = '1995-01-01', auto.assign = F)
 str(data)
+head(data)
 tail(data)
 # Buy & Hold
 signal = rep(1, nrow(data))
@@ -62,10 +63,11 @@ chartSeries(buy.hold.equity, TA = c(addTA(sma.cross.equity, on=1, col='red')),
 
 #========================================================================================================
 #The code I implemented in the Systematic Investor Toolbox is a bit longer, but follows the same logic. 
-#It provides extra functionality: ability to handle multiple securities, weights or shares backtesting, 
-#and customized reporting. Following is a sample code to implement the above strategies using the backtesting 
-#library in the Systematic Investor Toolbox:
+# It provides extra functionality: ability to handle multiple securities, weights or shares backtesting, 
+# and customized reporting. Following is a sample code to implement the above strategies using the backtesting 
+# library in the Systematic Investor Toolbox:
 # Load Systematic Investor Toolbox (SIT)
+#---------------------------------------------------------------------------------------
 con = gzcon(url('https://github.com/systematicinvestor/SIT/raw/master/sit.gz', 'rb'))
 source(con)
 close(con)
@@ -85,7 +87,7 @@ tickers = spl('SPY')
 
 data <- new.env()
 getSymbols(tickers, src = 'yahoo', from = '1970-01-01', env = data, auto.assign = T)
-bt.prep(data, align='keep.all', dates='1970::2011')
+bt.prep(data, align='keep.all', dates='2000::2020')
 
 #*****************************************************************
 # Code Strategies
@@ -101,12 +103,58 @@ models$buy.hold = bt.run(data)
 
 # MA Cross
 sma = bt.apply(data, function(x) { SMA(Cl(x), 200) } )  
+head(sma, 200)
+head(prices, 200)
 data$weight[] = NA
 data$weight[] = iif(prices >= sma, 1, 0)
+head(data$weight, 200)
+
+names(data)
 #================================================================================================
 #https://github.com/systematicinvestor/SIT/blob/fa252258525a4f3e29da1f845ad683d917dafef7/R/bt.r
-models$sma.cross = bt.run(data, trade.summary=T)           
+# I found that do.lag should be set to 2 instead of 1 which is the default value to take effect.  
+models$sma.cross = bt.run(data, do.lag = 2, trade.summary=T)  
+names(models$sma.cross)
+str(models$sma.cross)
 models$sma.cross$trade.summary
+#-----------------------------
+# example of maxDD: 
+# a = c(3:1, 2:0, 4:2)
+# cummax(a)
+# min(a/cummax(a) - 1)
+#----------------------------
+# https://github.com/systematicinvestor/SIT/blob/master/R/bt.summary.r
+bt.detail.summary(models$sma.cross)
+plotbt.transition.map(models$sma.cross$weight)
+plotbt.monthly.table(models$sma.cross$equity)
+#
+compute.exposure(models$sma.cross$weight)
+compute.var(models$sma.cross$ret)
+compute.cvar(models$sma.cross$ret)
+library(ggplot2)
+ggplot(models$sma.cross$ret) + 
+  geom_histogram(aes(x = SPY), binwidth = 0.005)
+#
+#*****************************************************************
+# Create Report
+#****************************************************************** 
+png(filename = 'plot1.png', width = 600, height = 500, units = 'px', pointsize = 12, bg = 'white')										
+plotbt.custom.report.part1(models$sma.cross, models$buy.hold)			
+dev.off()	
+
+png(filename = 'plot2.png', width = 1200, height = 800, units = 'px', pointsize = 12, bg = 'white')	
+plotbt.custom.report.part2(models$sma.cross, models$buy.hold)			
+dev.off()	
+
+png(filename = 'plot3.png', width = 600, height = 500, units = 'px', pointsize = 12, bg = 'white')	
+plotbt.custom.report.part3(models$sma.cross, models$buy.hold)			
+dev.off()	
+
+# put all reports into one pdf file
+pdf(file = 'report.pdf', width=8.5, height=11)
+plotbt.custom.report(models$sma.cross, models$buy.hold, trade.summary=T)
+dev.off()
+
 #===============================================================================================
 # https://github.com/systematicinvestor/SIT/blob/fa252258525a4f3e29da1f845ad683d917dafef7/R/bt.r
 #=================================================================================================
