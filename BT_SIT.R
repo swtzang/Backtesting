@@ -47,14 +47,19 @@ tail(data)
 signal = rep(1, nrow(data))
 buy.hold = bt.simple(data, signal)
 ls(buy.hold)
+head(buy.hold$ret)
+head(buy.hold$equity)
 # MA Cross
 sma = SMA(Cl(data),200)
+head(sma, 250)
 signal = ifelse(Cl(data) > sma, 1, 0)
+head(signal, 250)
+head(Cl(data), 250)
 sma.cross = bt.simple(data, signal)
 names(sma.cross)
 head(sma.cross$equity)
 # Create a chart showing the strategies perfromance in 2000:2009
-dates = '2000::2020'
+dates = '1995::2020'
 buy.hold.equity = buy.hold$equity[dates] / as.double(buy.hold$equity[dates][1])
 sma.cross.equity = sma.cross$equity[dates] / as.double(sma.cross$equity[dates][1])
 
