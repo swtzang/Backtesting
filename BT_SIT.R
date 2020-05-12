@@ -87,19 +87,19 @@ close(con)
 #*****************************************************************
 # Load historical data
 #******************************************************************     
-load.packages('quantmod')
+p_load(quantmod)
 tickers = spl('SPY')
 
 data <- new.env()
 getSymbols(tickers, src = 'yahoo', from = '1970-01-01', env = data, auto.assign = T)
 bt.prep(data, align='keep.all', dates='2000::2020')
-
+names(data)
 #*****************************************************************
 # Code Strategies
 #****************************************************************** 
 models<-list()
 prices = data$prices    
-
+head(prices)
 # Buy & Hold    
 data$weight[] = 1
 models$buy.hold = bt.run(data) 
