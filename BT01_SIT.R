@@ -39,6 +39,7 @@ bt.simple <- function(data, signal)
 # Test for bt.simple functions
 
 # load historical prices from Yahoo Finance
+# SPY: standard Poor 500 ETF
 data = getSymbols('SPY', src = 'yahoo', from = '1995-01-01', auto.assign = F)
 str(data)
 head(data)
@@ -113,12 +114,11 @@ head(prices, 200)
 data$weight[] = NA
 data$weight[] = iif(prices >= sma, 1, 0)
 head(data$weight, 200)
-
 names(data)
 #================================================================================================
 #https://github.com/systematicinvestor/SIT/blob/fa252258525a4f3e29da1f845ad683d917dafef7/R/bt.r
 # I found that do.lag should be set to 2 instead of 1 which is the default value to take effect.  
-models$sma.cross = bt.run(data, do.lag = 2, trade.summary=T)  
+models$sma.cross = bt.run(data, do.lag = 1, trade.summary=T)  
 names(models$sma.cross)
 str(models$sma.cross)
 models$sma.cross$trade.summary
