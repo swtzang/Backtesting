@@ -4,8 +4,10 @@ con = gzcon(url('https://github.com/systematicinvestor/SIT/raw/master/sit.gz', '
 source(con)
 close(con)
 
+#
+install.packages('pacman')
 library(pacman)
-p_load(quantmod, xts, zoo)
+p_load(quantmod, xts)
 # tickers = spl('0050.TW')
 
 # etf50 <- read.table("tw50_20030630_20181231.txt", header = TRUE, fileEncoding = "UTF-8")
@@ -25,11 +27,14 @@ colnames(etf50.xts) <- 'tw50'
 head(etf50.xts)
 #
 data <- new.env()
+# Three imputs that you have to provide for backtesting:
+# 1. prices; 2. weight; 3. execution.price
 data$prices <- etf50.xts
 data$weight <- data$prices * NA
 data$weight[] = 1
 data$execution.price <- data$prices
 data$execution.price[] <- NA
+names(data)
 # Buy & Hold 
 models <- list()
 models$buy.hold = bt.run(data) 
@@ -39,7 +44,8 @@ models$buy.hold = bt.run(data)
 
 # MA Cross
 # sma = bt.apply(data, function(x) { SMA((x), 200) }) 
-#
+# md: days of moving average
+# one more imput you have to provide: symbolnames
 md = 50
 sma = SMA(data$prices, md)
 head(sma, md)
