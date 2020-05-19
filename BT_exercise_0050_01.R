@@ -11,6 +11,9 @@ p_load(quantmod, xts)
 # tickers = spl('0050.TW')
 
 # etf50 <- read.table("tw50_20030630_20181231.txt", header = TRUE, fileEncoding = "UTF-8")
+p_load(readr)
+etf56 <- read.csv("tw0056_2007_2019_02.csv", sep = ',', fileEncoding = "UTF-8")
+etf56 <- read.table("tw0056_2007_2019_01.txt", header = TRUE)
 etf50 <- read.table("tw50_20030630_20181231.txt", header = TRUE)
 etf50 <- etf50[-c(1, 2)]
 colnames(etf50) <- c("date", "tw50")
