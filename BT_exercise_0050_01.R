@@ -1,4 +1,4 @@
-# This is to download data from yahoo
+# This is the case of downloading data from TEJ
 rm(list=ls())
 con = gzcon(url('https://github.com/systematicinvestor/SIT/raw/master/sit.gz', 'rb'))
 source(con)
