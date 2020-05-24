@@ -103,6 +103,13 @@ models.tw$min.var.monthly = bt.run(data)
 # to verify the default do.lag  = 1 day
 # sum(as.numeric(weight[36,])*as.numeric(ret[37,]))
 # min.var.monthly$ret[37, ]
+plotbt.custom.report.part1(models.tw$min.var.monthly, models.tw$equal.weight)
+#
+layout(1:2)
+plotbt.transition.map(models.tw$min.var.monthly$weight)
+legend('topright', legend = 'min.var.monthly', bty = 'n')
+plotbt.transition.map(models.tw$equal.weight$weight)
+legend('topright', legend = 'equal weight', bty = 'n')
 
 strategy.performance.snapshoot(models.tw, T)
 models.tw <- rev(models.tw)
