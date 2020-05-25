@@ -4,7 +4,6 @@ con = gzcon(url('https://github.com/systematicinvestor/SIT/raw/master/sit.gz', '
 source(con)
 close(con)
 
-#
 install.packages('pacman')
 library(pacman)
 p_load(quantmod, xts)
@@ -18,17 +17,19 @@ etf56 <- read.table("tw0056_20070101_20191231.txt", header = TRUE)
 #etf56 <- read.csv("tw0056_20070101_20191231.csv", header = TRUE)
 #etf50 <- read.table("tw50_20030630_20181231.txt", header = TRUE)
 etf56 <- etf56[c(3, 7)]
-colnames(etf56) <- c("date", "tw56")
+colnames(etf56) <- c("date", "price")
 head(etf56)
 tail(etf56)
 str(etf56)
-#
+# 檢查是否有na 值
+sum(is.na(etf56$price))
+
 # convert to time series data
 # library(lubridate)
 # etf50.xts <- xts(etf50$tw50, order.by = ymd(as.character(etf50$date)))
-etf56.xts <- xts(etf56$tw56, order.by = as.Date(as.character(etf56$date), format = "%Y%m%d"))
+etf56.xts <- xts(etf56$price, order.by = as.Date(as.character(etf56$date), format = "%Y%m%d"))
 head(etf56.xts)
-colnames(etf56.xts) <- 'tw56'
+colnames(etf56.xts) <- 'price'
 head(etf56.xts)
 #
 data <- new.env()
