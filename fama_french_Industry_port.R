@@ -62,9 +62,11 @@ strategy.performance.snapshoot(models.tw, T)
 industry.price.sample <- industry.price['199701/202003']
 # industry10.price.sample <- industry10['199701/202003']
 # reset inputs to SIT bt function
+# data$prices = data$weight = data$execution.price = industry.price.sample
 data$prices <- industry.price.sample
 data$weight <- industry.price.sample
 data$execution.price <- industry.price.sample
+
 data$execution.price[] <- NA
 prices <- data$prices
 
