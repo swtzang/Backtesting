@@ -36,7 +36,7 @@ data <- new.env()
 data$prices <- industry.price.sample
 data$weight <- industry.price.sample
 data$execution.price <- industry.price.sample
-data.tw$execution.price[] <- NA
+data$execution.price[] <- NA
 data$symbolnames <- colnames(data$prices)
 prices = data$prices   
 n = ncol(prices)
