@@ -15,37 +15,49 @@ p_load(quantmod, xts)
 # etf56 <- read.table("tw0056_2007_2019.txt", header = TRUE)
 etf56 <- read.table("tw0056_20070101_20191231.txt", header = TRUE)
 #etf56 <- read.csv("tw0056_20070101_20191231.csv", header = TRUE)
-#etf50 <- read.table("tw50_20030630_20181231.txt", header = TRUE)
+etf50 <- read.table("tw50_20030630_20181231.txt", header = TRUE)
+#
 etf56 <- etf56[c(3, 7)]
-colnames(etf56) <- c("date", "price")
+colnames(etf56) <- c("date", "tw56")
 head(etf56)
 tail(etf56)
 str(etf56)
+#
+etf50 <- etf50[c(3,4)]
+colnames(etf50) <- c("date", "tw50")
+str(etf50)
 # 檢查是否有na 值
 sum(is.na(etf56$price))
+
+# merge two data frames 
+# etf2 <- merge(etf50, etf56, by = "date", all.x = TRUE)
+etf2 <- merge(etf56, etf50, by = "date", all.x = TRUE)
 
 # convert to time series data
 # library(lubridate)
 # etf50.xts <- xts(etf50$tw50, order.by = ymd(as.character(etf50$date)))
-etf56.xts <- xts(etf56$price, order.by = as.Date(as.character(etf56$date), format = "%Y%m%d"))
-head(etf56.xts)
-colnames(etf56.xts) <- 'price'
-head(etf56.xts)
+etf2.xts <- xts(etf2[, -1], order.by = as.Date(as.character(etf2$date), format = "%Y%m%d"))
+head(etf2.xts)
 #
 data <- new.env()
-# Three inputs that you have to provide for backtesting:
-# 1. prices; 2. weight; 3. execution.price
-data$prices = data$weight = data$execution.price = etf56.xts
-#
-data$weight <- data$prices * NA
-data$weight[] = 1
-#data$execution.price <- data$prices
-data$execution.price[] <- NA
-names(data)
-# Buy & Hold 
 models <- list()
-models$buy.hold = bt.run(data) 
+# Three imputs that you have to provide for backtesting:
+# 1. prices; 2. weight; 3. execution.price
+i = 1
+for (i  in 1:2) {
+    fundi = c('bh.tw56', 'bh.tw50')
+    data$prices <- etf2.xts[, i]
+    data$weight <- data$prices * NA
+    data$weight[] = 1
+    data$execution.price <- data$prices
+    data$execution.price[] <- NA
+    # names(data)
+    # Buy & Hold 
+    # names(models)[[i]] <- fundi[i]
+    models[[i]] = bt.run(data) 
+}
 
+names(models) <- fundi
 # you may turn off the timezone error message for just now
 # options('xts_check_TZ'=FALSE)
 
@@ -68,6 +80,7 @@ names(models$sma.cross)
 str(models$sma.cross)
 models$sma.cross$trade.summary
 #
+#======================================================================
 # present the results: 
 bt.detail.summary(models$sma.cross)
 plotbt.transition.map(models$sma.cross$weight)
