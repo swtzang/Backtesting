@@ -1,3 +1,4 @@
+# https://systematicinvestor.wordpress.com/2011/12/13/backtesting-minimum-variance-portfolios/
 # Homework
 #==============================================================================================
 #1. Download 10 industry portfolio returns (average value-weighted monthly returns) from 
@@ -23,6 +24,7 @@ p_load(quantmod, quadprog, lpSolve)
 industry10 <- read.table("10_Industry_Portfolios_Wout_Div.txt", header = TRUE)
 date <- seq(as.Date("1926-08-01"), length=1126, by="1 month") - 1
 industry10 <- xts(coredata(industry10[, -1])/100, order.by = date)
+head(industry10)
 # convert into prices
 industry.price <- cumprod(industry10+1)*100
 head(industry.price)
@@ -33,9 +35,7 @@ industry.price.sample <- industry.price['199912/202003']
 models.tw<-list()
 # set up inputs of SIT bt function
 data <- new.env()
-data$prices <- industry.price.sample
-data$weight <- industry.price.sample
-data$execution.price <- industry.price.sample
+data$prices = data$weight = data$execution.price = industry.price.sample
 data$execution.price[] <- NA
 data$symbolnames <- colnames(data$prices)
 prices = data$prices   
@@ -62,11 +62,10 @@ strategy.performance.snapshoot(models.tw, T)
 industry.price.sample <- industry.price['199701/202003']
 # industry10.price.sample <- industry10['199701/202003']
 # reset inputs to SIT bt function
-# data$prices = data$weight = data$execution.price = industry.price.sample
-data$prices <- industry.price.sample
-data$weight <- industry.price.sample
-data$execution.price <- industry.price.sample
-
+data$prices = data$weight = data$execution.price = industry.price.sample
+#data$prices <- industry.price.sample
+#data$weight <- industry.price.sample
+#data$execution.price <- industry.price.sample
 data$execution.price[] <- NA
 prices <- data$prices
 
@@ -82,17 +81,16 @@ ret = prices / mlag(prices) - 1
 weight = coredata(prices)
 weight[] = NA
 
-i = 36
-i = 245
-for( i in 36 : (dim(weight)[1]) )  {
+# i = 36
+# i = 245
+for (i in 36:dim(weight)[1]) {
   # using 36 historical monthly returns
   hist = ret[ (i- 36 +1):i, ]
   hist = na.omit(hist)
   # create historical input assumptions
   ia = create.historical.ia(hist, 12)
-  s0 = apply(coredata(hist),2,sd)     
-  ia$cov = cor(coredata(hist), use='complete.obs',method='pearson') * (s0 %*% t(s0))
-  
+  s0 = apply(coredata(hist),2, sd)     
+  ia$cov = cor(coredata(hist), use='complete.obs',method='kendall') * (s0 %*% t(s0))
   weight[i,] = min.risk.portfolio(ia, constraints)
 }
 

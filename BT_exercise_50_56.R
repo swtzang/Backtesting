@@ -66,16 +66,20 @@ names(models) <- fundi
 # md: days of moving average
 # one more imput you have to provide: symbolnames
 md = 50
-sma = SMA(data$prices, md)
-head(sma, md)
-head(data$prices, md)
-data$weight[] = NA
-data$weight[] = iif(data$prices >= sma, 1, 0)
-data$symbolnames <- 'tw56'
-head(data$weight, md)
-#names(data)
-#
-models$sma.cross = bt.run(data, type = 'weight', trade.summary = TRUE)  
+for ( i in 3:4) {
+    fundi = c('sma.tw56', 'sma.tw50')
+    data$prices <- etf2.xts[, i]
+    data$weight <- data$prices * NA
+    data$execution.price <- data$prices
+    data$execution.price[] <- NA
+    sma = SMA(data$prices, md)
+    data$weight[] = iif(data$prices >= sma, 1, 0)
+    data$symbolnames <- fundi[i]
+    head(data$weight, md)
+    #names(data)
+    #
+    models[[i]] = bt.run(data, type = 'weight', trade.summary = TRUE)  
+}
 names(models$sma.cross)
 str(models$sma.cross)
 models$sma.cross$trade.summary

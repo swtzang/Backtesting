@@ -1,3 +1,4 @@
+# https://bookdown.org/kochiuyu/Technical-Analysis-with-R/technical-indicators.html
 # This is the case of downloading data from TEJ
 rm(list=ls())
 con = gzcon(url('https://github.com/systematicinvestor/SIT/raw/master/sit.gz', 'rb'))
@@ -36,6 +37,9 @@ data <- new.env()
 # Three inputs that you have to provide for backtesting:
 # 1. prices; 2. weight; 3. execution.price
 data$prices = data$weight = data$execution.price = etf56.xts
+#data$prices <-  etf56.xts
+#data$weight =  etf56.xts
+#data$execution.price <- etf56.xts
 #
 data$weight <- data$prices * NA
 data$weight[] = 1
@@ -45,6 +49,8 @@ names(data)
 # Buy & Hold 
 models <- list()
 models$buy.hold = bt.run(data) 
+names(models$buy.hold)
+tail(models$buy.hold$equity)
 
 # you may turn off the timezone error message for just now
 # options('xts_check_TZ'=FALSE)
@@ -63,7 +69,7 @@ data$symbolnames <- 'tw56'
 head(data$weight, md)
 #names(data)
 #
-models$sma.cross = bt.run(data, type = 'weight', trade.summary = TRUE)  
+models$sma.cross = bt.run(data, type = 'weight', do.lag = 1, trade.summary = TRUE)  
 names(models$sma.cross)
 str(models$sma.cross)
 models$sma.cross$trade.summary
