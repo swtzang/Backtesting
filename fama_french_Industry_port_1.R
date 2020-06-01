@@ -70,8 +70,11 @@ weights <- list()
   weights$min.cvar <- weight
   weights$min.cdar <- weight
   weights$min.cor.insteadof.cov <- weight
-  weights$min.mad.downsid <- weight
+  # weights$min.mad.downsid <- weight
   weights$min.risk.downside <- weight
+  # following optimizations use a non-linear solver
+  weights$erc = weight        
+  weights$min.avgcor = weight    
 # i = 36
 # i = 245
 # construct portfolios
@@ -91,8 +94,16 @@ for (i in start.i:dim(weight)[1]) {
   weights$min.cvar[i,] = min.cvar.portfolio(ia, constraints)
   weights$min.cdar[i,] = min.cdar.portfolio(ia, constraints)
   weights$min.cor.insteadof.cov[i,] = min.cor.insteadof.cov.portfolio(ia, constraints)
-  weights$min.mad.downside[i,] = min.mad.downside.portfolio(ia, constraints)
+  # weights$min.mad.downside[i,] = min.mad.downside.portfolio(ia, constraints)
   weights$min.risk.downside[i,] = min.risk.downside.portfolio(ia, constraints)
+  # following optimizations use a non-linear solver       
+  constraints$x0 = weights$erc[(j-1),]
+  weights$erc[j,] = find.erc.portfolio(ia, constraints)       
+  
+  constraints$x0 = weights$min.avgcor[(j-1),]
+  weights$min.avgcor[j,] = min.avgcor.portfolio(ia, constraints)                      
+  
+  risk.contributions$erc[j,] = portfolio.risk.contribution(weights$erc[j,], ia)
 }
 
 # apply(weight, 1, sum)
