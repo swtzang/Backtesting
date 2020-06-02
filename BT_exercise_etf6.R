@@ -14,8 +14,8 @@ p_load(reshape2)
 etf6.l <- dcast(etf6, date~id)
 head(etf6.l)
 
-etf6.l <- na.omit(etf6.l)
-head(etf6.l)
+# etf6.l <- na.omit(etf6.l)
+# head(etf6.l)
 
 str(etf6.l)
 
@@ -38,15 +38,65 @@ names(data)
 
 #
 model <- list()
+#
 model$buy.hold <- bt.run(data)
+
+#
+etf3 <- etf6.xts[, 1:3]
+data$prices = data$weight = data$execution.price = etf3
+data$execution.price[] <- NA
+prices <- data$prices
+n <- ncol(prices)
+data$weight <- ntop(prices, n)
+model$etf3.bh <- bt.run(data)
 
 # moving average
 md <- 50
+data$prices = data$weight = data$execution.price = etf3$`0056`
 sma <- SMA(data$prices, md)
 data$weight[] <- NA
 data$weight[] <- iif(data$prices >= sma, 1, 0)
 data$symbolnames <- 'tw56'
 #
-model$sma.cross <- bt.run(data, trade.summary = T)
+model$tw56.sma.cross <- bt.run(data, trade.summary = T)
 #
 strategy.performance.snapshoot(model, T)
+
+#===================================================
+# multiple models
+#===================================================
+colnames(etf3) <- c("etf50", "etf52", "etf56")
+data <- new.env()
+models <- list()
+weights <- list()
+# equal weight for 3 assets
+data$prices = data$weight = data$execution.price = etf3 
+prices <- data$prices
+n <- ncol(prices)
+weights$etf3.equal.weight <- ntop(prices, n) 
+# buy and hold for each asset
+data <- new.env()
+data$prices = data$weight = data$execution.price = etf3$`0050`
+md = 50
+for (i in names(etf3)) {
+  data <- new.env()
+  data$prices = data$weight = data$execution.price = etf3[, i]
+  data$weight[] = 1
+  models[[i]] <- bt.run(data) 
+  sma <- SMA(data$prices, md)
+  data$weight[] <- iif(data$prices >= sma, 1, 0)
+  i <- paste(i, '.sma.cross', sep = '')
+  models[[i]] <- bt.run(data)
+}
+
+plotbt.strategy.sidebyside(models, return.table=T, make.plot = F)
+strategy.performance.snapshoot(models,T)
+plotbt(models, plotX = T, log = 'y', LeftMargin = 3)            
+mtext('Cumulative Performance', side = 2, line = 1)
+
+
+
+
+
+
+

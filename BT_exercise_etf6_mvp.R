@@ -74,8 +74,8 @@ for (i in 36:dim(weight)[1]) {
   hist = na.omit(hist)
   # create historical input assumptions
   ia = create.historical.ia(hist, 52)
-  s0 = apply(coredata(hist),2, sd)     
-  ia$cov = cor(coredata(hist), use='complete.obs',method='kendall') * (s0 %*% t(s0))
+  #s0 = apply(coredata(hist),2, sd)     
+  #ia$cov = cor(coredata(hist), use='complete.obs',method='kendall') * (s0 %*% t(s0))
   weight[i,] = min.risk.portfolio(ia, constraints)
 }
 
@@ -98,9 +98,45 @@ strategy.performance.snapshoot(models, T)
 models.tw <- rev(models)
 plotbt.custom.report(models.tw)
 
+#===================================================
+# combine together
+#====================================================
+data <- new.env()
+data$prices = data$weight = data$execution.price = etf3.w.xts
+#data$prices <- industry.price.sample
+#data$weight <- industry.price.sample
+#data$execution.price <- industry.price.sample
+data$execution.price[] <- NA
+weight <- data$weight 
+weight[] <- NA
+prices <- data$prices
+n <- ncol(prices)
+#
+weights <-  list()
+# set up for equal weighting across three assets
+weights$equal.weight = weight
+weights$equal.weight = ntop(prices, n)
+# set up for mvp weighting 
+weights$mvp = weight
+# i = 36
+for (i in 36:dim(weight)[1]) {
+  # using 36 historical monthly returns
+  hist = ret[ (i- 36 +1):i, ]
+  hist = na.omit(hist)
+  # create historical input assumptions
+  ia = create.historical.ia(hist, 52)
+  #s0 = apply(coredata(hist),2, sd)     
+  #ia$cov = cor(coredata(hist), use='complete.obs',method='kendall') * (s0 %*% t(s0))
+  weights$mvp[i,] = min.risk.portfolio(ia, constraints)
+}
 
+weights$equal.weight[1:35,] <- NA
 
-
+for (i in names(weights)){
+  data$weight[] = NA
+  data$weight <- weights[[i]]
+  models[[i]] <- bt.run(data)
+}
 
 
 
