@@ -100,6 +100,15 @@ for( j in start.i:len(period.ends) ) {
   risk.contributions$erc[j,] = portfolio.risk.contribution(weights$erc[j,], ia)
 }
 
+#*****************************************************************
+# Create strategies
+#******************************************************************         
+models = list()
+for(i in names(weights)) {
+  data$weight[] = NA
+  data$weight[period.ends,] = weights[[i]]    
+  models[[i]] = bt.run.share(data, clean.signal = F)
+}
 
 
 
