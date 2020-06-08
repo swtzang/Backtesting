@@ -155,14 +155,71 @@ n <- ncol(prices)
 #*****************************************************************
 # Create Constraints
 #*****************************************************************
-constraints = new.constraints(n, lb = -Inf, ub = +Inf)
+constraints = new.constraints(n, lb = 0, ub = +Inf)
 # SUM x.i = 1
 constraints = add.constraints(rep(1, n), 1, type = '=', constraints)        
 #
 ret = prices / mlag(prices) - 1
 weight = coredata(prices)
 weight[] = NA
-# i = 36
+i = 36
+for (i in 36:dim(weight)[1]) {
+  # using 36 historical monthly returns
+  hist = ret[ (i- 36 +1):i, ]
+  hist = na.omit(hist)
+  # create historical input assumptions
+  ia = create.historical.ia(hist, 12)
+  # s0 = apply(coredata(hist),2, sd)     
+  ia$cov = cov(coredata(hist))
+  #ia$cov = cor(coredata(hist), use='complete.obs',method='kendall') * (s0 %*% t(s0))
+  # use min.risk.portfolio() to compute MVP weights
+  weight[i,] = min.risk.portfolio(ia, constraints)
+}
+weight
+#apply(weight, 1, sum)
+
+data$weight[] = weight     
+#capital = 100000
+#data$weight[] = (capital / prices) * data$weight
+model$min.var.monthly = bt.run(data, type = "weight")
+#
+plotbt.strategy.sidebyside(model, return.table=T, make.plot = T)
+plotbt(model)
+#====================
+# multiple models
+#====================
+#*****************************************************************
+# Create Constraints
+#*****************************************************************
+constraints = new.constraints(n, lb = 0, ub = 1)
+
+# SUM x.i = 1
+constraints = add.constraints(rep(1, n), 1, type = '=', constraints)        
+
+#*****************************************************************
+# Create Portfolios
+#*****************************************************************          
+ret = prices / mlag(prices) - 1
+weight = coredata(prices)
+weight[] = NA
+#
+weights = list()
+# Equal Weight 1/N Benchmark
+weights$equal.weight = weight
+weights$equal.weight[] = ntop(prices, n)
+start.i = 35
+weights$equal.weight[1:start.i,] = NA
+#
+weights$min.var = weight
+weights$min.maxloss = weight
+weights$min.mad = weight
+weights$min.cvar = weight
+weights$min.cdar = weight
+weights$min.cor.insteadof.cov = weight
+weights$min.mad.downside = weight
+weights$min.risk.downside = weight
+#
+#
 for (i in 36:dim(weight)[1]) {
   # using 36 historical monthly returns
   hist = ret[ (i- 36 +1):i, ]
@@ -173,17 +230,31 @@ for (i in 36:dim(weight)[1]) {
   # ia$cov = cov(coredata(hist))
   ia$cov = cor(coredata(hist), use='complete.obs',method='kendall') * (s0 %*% t(s0))
   # use min.risk.portfolio() to compute MVP weights
-  weight[i,] = min.risk.portfolio(ia, constraints)
+  weights$min.var[i,] = min.risk.portfolio(ia, constraints)
+  weights$min.maxloss[i,] = min.maxloss.portfolio(ia, constraints)
+  weights$min.mad[i,] = min.mad.portfolio(ia, constraints)
+  weights$min.cvar[i,] = min.cvar.portfolio(ia, constraints)
+  weights$min.cdar[i,] = min.cdar.portfolio(ia, constraints)
+  weights$min.cor.insteadof.cov[i,] = min.cor.insteadof.cov.portfolio(ia, constraints)
+  weights$min.mad.downside[i,] = min.mad.downside.portfolio(ia, constraints)
+  weights$min.risk.downside[i,] = min.risk.downside.portfolio(ia, constraints)
 }
 
-# apply(weight, 1, sum)
+models = list()
+# i = "equal.weight"
+for(i in names(weights)) {
+  data$weight[] = NA
+  data$weight[] = weights[[i]]    
+  models[[i]] = bt.run.share(data, clean.signal = F)
+}
 
-data$weight[] = weight     
-#capital = 100000
-#data$weight[] = (capital / prices) * data$weight
-model$min.var.monthly = bt.run(data)
-#
-plotbt.strategy.sidebyside(model, return.table=T, make.plot = F)
+# Plot perfromance
+plotbt(models, plotX = T, log = 'y', LeftMargin = 3)            
+mtext('Cumulative Performance', side = 2, line = 1)
+
+# Plot Strategy Statistics  Side by Side
+plotbt.strategy.sidebyside(models)
+
 
 
 
