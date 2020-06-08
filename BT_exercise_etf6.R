@@ -22,6 +22,7 @@ str(etf6.l)
 # convert into xts
 etf6.xts <- xts(etf6.l[, -1], order.by = as.Date(as.character(etf6.l$date), format = '%Y%m%d'))
 class(etf6.xts)
+head(etf6.xts)
 # SIT 
 con = gzcon(url('http://www.systematicportfolio.com/sit.gz', 'rb'))
 source(con)
@@ -31,15 +32,47 @@ data <- new.env()
 # 1. prices; 2. weight; 3. execution.price
 # buy and hold
 etf56 <- etf6.xts$`0056`
+head(etf56)
 data$prices = data$weight = data$execution.price = etf56
 data$weight[] <- 1
 data$execution.price[] <- NA
 names(data)
 
+etf52 <- etf6.xts$`0052`
+head(etf52)
+data$prices = data$weight = data$execution.price = etf52
+data$weight[] <- 1
+data$execution.price[] <- NA
+names(data)
+#
+model <- list()
+#
+etf3 <- etf6.xts[, 1:3]
+head(etf3)
+names(etf3)
+colnames(etf3) <- c('e50', 'e52', 'e56')
+names(etf3)
+md = 50
+i = 'e50'
+for (i in names(etf3)) {
+  data$prices = data$weight = data$execution.price = etf3[, i]
+  data$weight[] <- 1
+  data$execution.price[] <- NA
+  model[[i]] <- bt.run(data)
+  sma <- SMA(data$prices, md)
+  data$weight[] <- iif(data$prices >= sma, 1, 0)
+  i <- paste(i, '.sma.cross', sep = '')
+  model[[i]] <- bt.run(data)
+}
+
+strategy.performance.snapshoot(model, T)
+plotbt(model, plotX = T, log = 'y', LeftMargin = 3)            
+mtext('Cumulative Performance', side = 2, line = 1)
 #
 model <- list()
 #
 model$buy.hold <- bt.run(data)
+
 
 #
 etf3 <- etf6.xts[, 1:3]
@@ -61,7 +94,8 @@ data$symbolnames <- 'tw56'
 model$tw56.sma.cross <- bt.run(data, trade.summary = T)
 #
 strategy.performance.snapshoot(model, T)
-
+plotbt(model, plotX = T, log = 'y', LeftMargin = 3)            
+mtext('Cumulative Performance', side = 2, line = 1)
 #===================================================
 # multiple models
 #===================================================

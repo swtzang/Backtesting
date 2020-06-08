@@ -34,6 +34,9 @@ industry.price.sample <- industry.price['199912/202003']
 #
 models.tw<-list()
 # set up inputs of SIT bt function
+# Required inputs for SIT:
+# 1. create data variable, data$weight, data$prices and data$execution.price
+# 2. data$symbolnames
 data <- new.env()
 data$prices = data$weight = data$execution.price = industry.price.sample
 data$execution.price[] <- NA
@@ -42,9 +45,12 @@ prices = data$prices
 n = ncol(prices)
 
 # Equal Weight 1/N Benchmark
-data$weight = ntop(prices, n)  
-#
+data$weight = ntop(prices, n)
+head(data$weight)
+names(data)
+# bt.run() is backtesting function
 models.tw$equal.weight <- bt.run(data, trade.summary = T)
+names(models.tw$equal.weight)
 #
 #capital = 100000
 #data$weight[] = (capital / prices) * data$weight
@@ -61,7 +67,7 @@ strategy.performance.snapshoot(models.tw, T)
 # reset sample range
 industry.price.sample <- industry.price['199701/202003']
 # industry10.price.sample <- industry10['199701/202003']
-# reset inputs to SIT bt function
+# Reset inputs to SIT bt function
 data$prices = data$weight = data$execution.price = industry.price.sample
 #data$prices <- industry.price.sample
 #data$weight <- industry.price.sample
@@ -91,6 +97,7 @@ for (i in 36:dim(weight)[1]) {
   ia = create.historical.ia(hist, 12)
   s0 = apply(coredata(hist),2, sd)     
   ia$cov = cor(coredata(hist), use='complete.obs',method='kendall') * (s0 %*% t(s0))
+  # use min.risk.portfolio() to compute MVP weights
   weight[i,] = min.risk.portfolio(ia, constraints)
 }
 
@@ -114,3 +121,24 @@ legend('topright', legend = 'equal weight', bty = 'n')
 strategy.performance.snapshoot(models.tw, T)
 models.tw <- rev(models.tw)
 plotbt.custom.report(models.tw)
+
+bt.detail.summary(models.tw$min.var.monthly)
+plotbt.strategy.sidebyside(models.tw, return.table=T, make.plot = F)
+#strategy.performance.snapshoot(models.tw, T)
+
+# 
+# download 8 industry index from TEJ from 2000-2020
+# construct equal weight and mvp portfolio 
+# compare the performance of two strategies
+
+# Q1. Construct portfolios based on monthly returns 
+#     (using 36-month historical returns) 
+# Q2. Construct portfolios based on weekly returns
+# Q3. Construction portfolios based on single index model
+# Q4. Construct portfolios based on Fama-French three factor model
+# PCA models
+# many models garch, var, cvar...
+
+
+
+
