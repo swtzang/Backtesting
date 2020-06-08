@@ -1,4 +1,5 @@
 # Reference: 
+# https://systematicinvestor.wordpress.com/2012/03/19/backtesting-asset-allocation-portfolios/
 # https://systematicinvestor.wordpress.com/?s=minimum+variance+portfolio
 ###############################################################################
 # Load Systematic Investor Toolbox (SIT)
@@ -98,3 +99,14 @@ for( j in start.i:len(period.ends) ) {
   
   risk.contributions$erc[j,] = portfolio.risk.contribution(weights$erc[j,], ia)
 }
+
+
+
+
+
+
+
+
+
+
+
