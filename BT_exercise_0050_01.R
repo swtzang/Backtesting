@@ -5,7 +5,7 @@ source(con)
 close(con)
 
 #
-install.packages('pacman')
+#install.packages('pacman')
 library(pacman)
 p_load(quantmod, xts)
 # tickers = spl('0050.TW')
@@ -59,7 +59,7 @@ data$symbolnames <- 'tw50'
 head(data$weight, md)
 #names(data)
 #
-models$sma.cross = bt.run(data, type = 'weight', trade.summary = TRUE)  
+models$sma.cross = bt.run(data, trade.summary = TRUE)  
 names(models$sma.cross)
 str(models$sma.cross)
 models$sma.cross$trade.summary
